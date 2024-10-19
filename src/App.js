@@ -1,25 +1,35 @@
-import logo from './logo.svg';
+// src/App.js
+
+import React, { useState, useEffect } from 'react';
+import yaml from 'js-yaml';
+import SearchComponent from './components/SearchComponent';
 import './App.css';
 
-function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
-}
+const App = () => {
+    const [attributeGroups, setAttributeGroups] = useState({});
+
+    // Load the YAML file when the component mounts
+    useEffect(() => {
+        const loadAttributeGroups = async () => {
+            try {
+                const response = await fetch('/attribute-groups.yaml');
+                const yamlText = await response.text();
+                const data = yaml.load(yamlText);
+                setAttributeGroups(data.attributeGroups);
+            } catch (error) {
+                console.error('Error loading attribute groups:', error);
+            }
+        };
+
+        loadAttributeGroups();
+    }, []);
+
+    return (
+        <div>
+            <h1>Product Catalog Search</h1>
+            <SearchComponent attributeGroups={attributeGroups} />
+        </div>
+    );
+};
 
 export default App;

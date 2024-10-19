@@ -1,0 +1,169 @@
+# public/attribute-groups.yaml
+
+attributeGroups:
+  General:
+    - name: Color
+      type: select
+      options: ['Red', 'Blue', 'Green']
+    - name: Size
+      type: select
+      options: ['Small', 'Medium', 'Large']
+    - name: Width
+      type: number
+    - name: Brand
+      type: select
+      options: ['Brand A', 'Brand B', 'Brand C']
+    - name: Material
+      type: select
+      options: ['Cotton', 'Polyester', 'Wool']
+    - name: Made In
+      type: select
+      options: ['USA', 'China', 'Germany']
+    - name: Price
+      type: number
+    - name: 'productCode'
+      type: 'select'
+      options:
+        - 'Alpha001'
+        - 'Alpha002'
+        - 'Bravo001'
+        - 'Bravo002'
+        - 'Charlie001'
+        - 'Charlie002'
+        - 'Delta001'
+        - 'Echo001'
+        - 'Foxtrot001'
+        - 'Golf001'
+        - 'Hotel001'
+        - 'India001'
+        - 'Juliet001'
+        - 'Kilo001'
+        - 'Lima001'
+        - 'Mike001'
+        - 'November001'
+        - 'Oscar001'
+        - 'Papa001'
+        - 'Quebec001'
+        - 'Romeo001'
+        - 'Sierra001'
+        - 'Tango001'
+        - 'Uniform001'
+        - 'Victor001'
+        - 'Whiskey001'
+        - 'Xray001'
+        - 'Yankee001'
+        - 'Zulu001'
+        - 'AlphaBravo001'
+        - 'BravoCharlie001'
+        - 'CharlieDelta001'
+        - 'DeltaEcho001'
+        - 'EchoFoxtrot001'
+        - 'FoxtrotGolf001'
+        - 'GolfHotel001'
+        - 'HotelIndia001'
+        - 'IndiaJuliet001'
+        - 'JulietKilo001'
+        - 'KiloLima001'
+        - 'LimaMike001'
+        - 'MikeNovember001'
+        - 'NovemberOscar001'
+        - 'OscarPapa001'
+        - 'PapaQuebec001'
+        - 'QuebecRomeo001'
+        - 'RomeoSierra001'
+        - 'SierraTango001'
+        - 'TangoUniform001'
+        - 'UniformVictor001'
+        - 'VictorWhiskey001'
+
+  Specifications:
+    - name: Weight
+      type: number
+    - name: Dimensions
+      type: text
+    - name: Voltage
+      type: number
+    - name: Battery Life
+      type: text
+    - name: Power Consumption
+      type: number
+    - name: Max Load
+      type: number
+    - name: Storage Capacity
+      type: text
+    - name: Processor
+      type: select
+      options: ['i5', 'i7', 'Ryzen 5']
+    - name: RAM
+      type: number
+    - name: GPU
+      type: select
+      options: ['NVIDIA GTX 1050', 'AMD RX 580', 'Integrated']
+    - name: Screen Size
+      type: number
+    - name: Refresh Rate
+      type: number
+    - name: Operating System
+      type: select
+      options: ['Windows 10', 'macOS', 'Linux']
+    - name: Camera Resolution
+      type: text
+    - name: Noise Level
+      type: text
+
+  Performance:
+    - name: Max Speed
+      type: number
+    - name: Fuel Type
+      type: select
+      options: ['Petrol', 'Electric', 'Diesel']
+    - name: Range Per Charge
+      type: number
+    - name: Energy Efficiency
+      type: select
+      options: ['A++', 'A+', 'B']
+    - name: Compatible Devices
+      type: select
+      options: ['iPhone', 'Android', 'Windows']
+    - name: Bluetooth
+      type: boolean
+    - name: Waterproof
+      type: boolean
+
+  Features:
+    - name: In Stock
+      type: boolean
+    - name: Has Touch Screen
+      type: boolean
+    - name: USB Ports
+      type: number
+    - name: Ethernet
+      type: boolean
+    - name: Smart Connectivity
+      type: boolean
+    - name: Voice Control
+      type: boolean
+    - name: Recyclable
+      type: boolean
+    - name: Warranty Coverage
+      type: select
+      options: ['Full', 'Limited', 'None']
+
+  Warranty and Packaging:
+    - name: Warranty
+      type: text
+    - name: Packaging
+      type: select
+      options: ['Box', 'Bag', 'Envelope']
+    - name: Adjustable Height
+      type: boolean
+    - name: Foldable
+      type: boolean
+    - name: Seat Material
+      type: select
+      options: ['Leather', 'Fabric', 'Mesh']
+    - name: Wheel Type
+      type: select
+      options: ['Rubber', 'Plastic', 'Metal']
+    - name: Max Load Capacity
+      type: number
