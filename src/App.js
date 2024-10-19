@@ -12,7 +12,7 @@ const App = () => {
     useEffect(() => {
         const loadAttributeGroups = async () => {
             try {
-                const response = await fetch('/attribute-groups.yaml');
+                const response = await fetch('attribute-groups.yaml');
                 const yamlText = await response.text();
                 const data = yaml.load(yamlText);
                 setAttributeGroups(data.attributeGroups);
