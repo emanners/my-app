@@ -1,12 +1,12 @@
 // src/components/AttributeSelector.js
 
 import React from 'react';
+import PropTypes from 'prop-types';
+import { css } from '@emotion/react';
 import {
     Accordion,
     AccordionSummary,
     AccordionDetails,
-    Box,
-    Typography,
     IconButton,
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
@@ -15,37 +15,54 @@ import AddCircleIcon from '@mui/icons-material/AddCircle';
 const AttributeSelector = ({ attributeGroups, addCriterion }) => {
     return (
         <div>
-            <Typography variant="h6">Attributes</Typography>
+            <h2
+                css={css`
+                    margin-bottom: 16px;
+                `}
+            >
+                Attributes
+            </h2>
             {Object.entries(attributeGroups).map(([groupName, attributes]) => (
                 <Accordion key={groupName}>
                     <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                        <Typography>{groupName}</Typography>
+                        <span>{groupName}</span>
                     </AccordionSummary>
                     <AccordionDetails>
-                        <Box display="flex" flexDirection="column">
+                        <div>
                             {attributes.map((attribute) => (
-                                <Box
+                                <div
                                     key={attribute.name}
-                                    display="flex"
-                                    alignItems="center"
-                                    justifyContent="space-between"
-                                    marginBottom="8px"
+                                    css={css`
+                                        display: flex;
+                                        align-items: center;
+                                        justify-content: space-between;
+                                        margin-bottom: 8px;
+                                    `}
                                 >
-                                    <Typography>{attribute.name}</Typography>
+                                    <span>{attribute.name}</span>
                                     <IconButton
                                         color="primary"
-                                        onClick={() => addCriterion(attribute.name)}
+                                        onClick={() => {
+                                            console.log(`Adding criterion for:`, attribute.name);
+                                            addCriterion(attribute.name);
+                                        }}
+                                        aria-label={`Add ${attribute.name} criterion`}
                                     >
                                         <AddCircleIcon />
                                     </IconButton>
-                                </Box>
+                                </div>
                             ))}
-                        </Box>
+                        </div>
                     </AccordionDetails>
                 </Accordion>
             ))}
         </div>
     );
+};
+
+AttributeSelector.propTypes = {
+    attributeGroups: PropTypes.object.isRequired,
+    addCriterion: PropTypes.func.isRequired,
 };
 
 export default AttributeSelector;

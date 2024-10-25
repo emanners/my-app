@@ -3,7 +3,8 @@
 import React, { useState, useEffect } from 'react';
 import yaml from 'js-yaml';
 import SearchComponent from './components/SearchComponent';
-import './App.css';
+import './App.css'; // Retain if necessary for global styles
+import { Container } from '@mui/material';
 
 const App = () => {
     const [attributeGroups, setAttributeGroups] = useState({});
@@ -12,9 +13,13 @@ const App = () => {
     useEffect(() => {
         const loadAttributeGroups = async () => {
             try {
-                const response = await fetch('attribute-groups.yaml');
+                const response = await fetch(`${process.env.PUBLIC_URL}/attribute-groups.yaml`);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
                 const yamlText = await response.text();
                 const data = yaml.load(yamlText);
+                console.log('Loaded attribute groups:', data.attributeGroups);
                 setAttributeGroups(data.attributeGroups);
             } catch (error) {
                 console.error('Error loading attribute groups:', error);
@@ -25,10 +30,10 @@ const App = () => {
     }, []);
 
     return (
-        <div>
-            <h1>Product Catalog Search</h1>
+        <Container sx={{ padding: '32px' }}>
+            <h1 style={{ textAlign: 'center', marginBottom: '24px' }}>Product Catalog Search</h1>
             <SearchComponent attributeGroups={attributeGroups} />
-        </div>
+        </Container>
     );
 };
 

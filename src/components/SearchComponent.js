@@ -1,10 +1,9 @@
 // src/components/SearchComponent.js
 
-import React, { useState, useEffect } from 'react';
-import { Grid, Typography, Button, Box } from '@mui/material';
-import AttributeSelector from './AttributeSelector';
-import CriteriaList from './CriteriaList';
-import ResultsComponent from './ResultsComponent';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import PropTypes from 'prop-types';
+import { debounce } from 'lodash';
+import SearchLayout from './SearchLayout';
 
 const SearchComponent = ({ attributeGroups }) => {
     const [criteria, setCriteria] = useState([]);
@@ -12,18 +11,21 @@ const SearchComponent = ({ attributeGroups }) => {
     const [filteredProducts, setFilteredProducts] = useState([]);
     const [mockProducts, setMockProducts] = useState([]);
 
-    // Build attribute definitions mapping with lowercase attribute names
-    const attributeDefinitions = {};
-    Object.values(attributeGroups).forEach((attributes) => {
-        attributes.forEach((attribute) => {
-            attributeDefinitions[attribute.name.toLowerCase()] = {
-                ...attribute,
-                name: attribute.name.toLowerCase(),
-            };
+    // Memoize attributeDefinitions to prevent re-creation on every render
+    const attributeDefinitions = useMemo(() => {
+        const defs = {};
+        Object.values(attributeGroups).forEach((attributes) => {
+            attributes.forEach((attribute) => {
+                defs[attribute.name.toLowerCase()] = {
+                    ...attribute,
+                    name: attribute.name.toLowerCase(),
+                };
+            });
         });
-    });
+        return defs;
+    }, [attributeGroups]);
 
-    // Initialize mock data
+    // Initialize mock data when attributeDefinitions change
     useEffect(() => {
         // Extract productCode options from attributeDefinitions
         const productCodeOptions =
@@ -49,35 +51,76 @@ const SearchComponent = ({ attributeGroups }) => {
 
         setMockProducts(products);
         setFilteredProducts(products);
-    }, [attributeDefinitions]); // Add attributeDefinitions as a dependency
+        console.log('Mock products initialized with count:', products.length);
+    }, [attributeDefinitions]);
 
-    // Update filtered products whenever activeCriteria change
-    useEffect(() => {
-        const filtered = mockProducts.filter((product) => {
-            return activeCriteria.every(({ attribute, operator, value }) => {
-                const attrDef = attributeDefinitions[attribute.toLowerCase()];
-                const productValue = product[attribute.toLowerCase()];
+    // Refactor applyFilters using useCallback and debounce
+    const applyFilters = useCallback(
+        debounce((currentCriteria) => {
+            console.log('Applying filters with activeCriteria:', currentCriteria);
+            if (currentCriteria.length === 0) {
+                setFilteredProducts(mockProducts);
+                console.log('No active criteria. Showing all products.');
+                return;
+            }
 
-                if (attrDef) {
-                    switch (operator) {
-                        case 'equal':
-                            return compareValues(attrDef.type, productValue, value);
-                        case 'notEqual':
-                            return !compareValues(attrDef.type, productValue, value);
-                        default:
-                            return true;
+            const filtered = mockProducts.filter((product) => {
+                return currentCriteria.every(({ attribute, operator, value }) => {
+                    const attrDef = attributeDefinitions[attribute.toLowerCase()];
+                    const productValue = product[attribute.toLowerCase()];
+
+                    if (attrDef) {
+                        switch (operator) {
+                            case 'equal':
+                                return compareValues(attrDef.type, productValue, value);
+                            case 'notEqual':
+                                return !compareValues(attrDef.type, productValue, value);
+                            case 'lessThan':
+                                if (attrDef.type === 'number') {
+                                    return productValue < value;
+                                }
+                                return true;
+                            case 'greaterThan':
+                                if (attrDef.type === 'number') {
+                                    return productValue > value;
+                                }
+                                return true;
+                            case 'contains':
+                                if (typeof productValue === 'string') {
+                                    return productValue.toLowerCase().includes(value.toLowerCase());
+                                }
+                                return true;
+                            case 'notContains':
+                                if (typeof productValue === 'string') {
+                                    return !productValue.toLowerCase().includes(value.toLowerCase());
+                                }
+                                return true;
+                            default:
+                                return true;
+                        }
                     }
-                }
-                return true;
+                    return true;
+                });
             });
-        });
-        setFilteredProducts(filtered);
-    }, [activeCriteria, mockProducts]);
+            console.log('Filtered products count:', filtered.length);
+            setFilteredProducts(filtered);
+        }, 300),
+        [attributeDefinitions, mockProducts]
+    );
+
+    // Update filteredProducts whenever activeCriteria or mockProducts change
+    useEffect(() => {
+        applyFilters(activeCriteria);
+        // Cleanup function to cancel debounce on unmount
+        return () => {
+            applyFilters.cancel();
+        };
+    }, [activeCriteria, applyFilters]);
 
     // Function to compare values based on type
     const compareValues = (type, productValue, value) => {
         if (type === 'boolean') {
-            return productValue === (value === 'true');
+            return productValue === (value === true || value === 'true');
         } else if (type === 'number') {
             return Number(productValue) === Number(value);
         } else {
@@ -91,6 +134,11 @@ const SearchComponent = ({ attributeGroups }) => {
     // Function to add a new criterion
     const addCriterion = (attributeName) => {
         const attributeNameLower = attributeName.toLowerCase();
+        // Prevent adding duplicate criteria for the same attribute
+        if (criteria.some((c) => c.attribute === attributeNameLower)) {
+            alert(`Criterion for "${attributeName}" already exists.`);
+            return;
+        }
         setCriteria([
             ...criteria,
             {
@@ -100,11 +148,13 @@ const SearchComponent = ({ attributeGroups }) => {
                 value: '', // Leave value empty as per your preference
             },
         ]);
+        console.log(`Added criterion for attribute: ${attributeNameLower}`);
     };
 
     // Function to remove a criterion
     const removeCriterion = (id) => {
         setCriteria(criteria.filter((c) => c.id !== id));
+        console.log(`Removed criterion with id: ${id}`);
     };
 
     // Function to update a criterion
@@ -112,76 +162,48 @@ const SearchComponent = ({ attributeGroups }) => {
         setCriteria(
             criteria.map((c) => (c.id === id ? { ...c, ...updatedCriterion } : c))
         );
+        console.log(`Updated criterion with id: ${id}`, updatedCriterion);
     };
 
     // Function to handle search button click
     const handleSearch = () => {
         // Check if all criteria have a non-empty value
-        const incompleteCriteria = criteria.filter((c) => c.value === '');
+        const incompleteCriteria = criteria.filter(
+            (c) => c.value === '' || c.value === null || c.value === undefined
+        );
         if (incompleteCriteria.length > 0) {
             alert('Please fill in all criteria values before searching.');
             return;
         }
 
+        console.log('Setting activeCriteria:', criteria);
         setActiveCriteria(criteria);
     };
 
     // Check if criteria are complete
-    const isCriteriaComplete = criteria.every((c) => c.value !== '');
+    const isCriteriaComplete =
+        criteria.length > 0 &&
+        criteria.every(
+            (c) => c.value !== '' && c.value !== null && c.value !== undefined
+        );
 
     return (
-        <div>
-            <Grid container spacing={2}>
-                {/* Left Column: Attribute Selection */}
-                <Grid item xs={4}>
-                    <AttributeSelector
-                        attributeGroups={attributeGroups}
-                        addCriterion={addCriterion}
-                    />
-                </Grid>
-
-                {/* Right Column: Criteria List and Results */}
-                <Grid item xs={8}>
-                    <Typography variant="h6">Criteria</Typography>
-                    <div
-                        style={{
-                            maxHeight: '300px',
-                            overflowY: 'auto',
-                            marginBottom: '16px',
-                        }}
-                    >
-                        <CriteriaList
-                            criteria={criteria}
-                            attributeDefinitions={attributeDefinitions}
-                            updateCriterion={updateCriterion}
-                            removeCriterion={removeCriterion}
-                        />
-                    </div>
-
-                    {/* Search Button and Results Header */}
-                    <Box
-                        display="flex"
-                        alignItems="center"
-                        justifyContent="space-between"
-                        marginBottom="16px"
-                    >
-                        <Typography variant="h6">Search Results</Typography>
-                        <Button
-                            variant="contained"
-                            color="primary"
-                            onClick={handleSearch}
-                            disabled={!isCriteriaComplete}
-                        >
-                            Search
-                        </Button>
-                    </Box>
-
-                    {/* Results */}
-                    <ResultsComponent products={filteredProducts} />
-                </Grid>
-            </Grid>
-        </div>
+        <SearchLayout
+            attributeGroups={attributeGroups}
+            attributeDefinitions={attributeDefinitions}
+            criteria={criteria}
+            filteredProducts={filteredProducts}
+            addCriterion={addCriterion}
+            updateCriterion={updateCriterion}
+            removeCriterion={removeCriterion}
+            handleSearch={handleSearch}
+            isCriteriaComplete={isCriteriaComplete}
+        />
     );
+};
+
+SearchComponent.propTypes = {
+    attributeGroups: PropTypes.object.isRequired,
 };
 
 export default SearchComponent;
